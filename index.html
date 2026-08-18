@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -84,9 +84,24 @@ button {
   color: white;
 }
 
+.dictate {
+  background: #5067a8;
+  color: white;
+}
+
 .save {
   background: #e58b20;
   color: black;
+}
+
+.historyButton {
+  background: #555;
+  color: white;
+}
+
+.deleteButton {
+  background: #a83232;
+  color: white;
 }
 
 .status {
@@ -102,6 +117,20 @@ button {
   padding: 15px;
   border-radius: 8px;
   margin-top: 15px;
+}
+
+.savedReport {
+  background: #f4f6f8;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.savedReportText {
+  white-space: pre-wrap;
+  font-size: 14px;
+  max-height: 180px;
+  overflow: auto;
 }
 
 h2 {
@@ -157,6 +186,14 @@ id="description"
 placeholder="Example: Heavy washboard across the entire road. Loose gravel has also been pushed into the ditch."
 ></textarea>
 
+<button class="dictate" id="dictateButton">
+🎙️ Dictate Description
+</button>
+
+<div id="dictationStatus" class="status">
+Voice-to-text ready.
+</div>
+
 <button class="voice" id="voiceButton">
 🎤 Start Voice Recording
 </button>
@@ -195,6 +232,22 @@ Save Report
 
 </div>
 
+<div class="card">
+
+<h2>Saved Report History</h2>
+
+<div id="historyStatus" class="status">
+Loading saved reports...
+</div>
+
+<div id="savedReports"></div>
+
+<button class="deleteButton" onclick="clearReports()">
+Clear All Saved Reports
+</button>
+
+</div>
+
 </main>
 
 <script>
@@ -207,31 +260,37 @@ let voiceBlob = null;
 
 function getLocation() {
 
-  const status = document.getElementById("locationStatus");
+  const status =
+    document.getElementById("locationStatus");
 
   if (!navigator.geolocation) {
-    status.innerText = "GPS is not supported on this device.";
+    status.innerText =
+      "GPS is not supported on this device.";
     return;
   }
 
-  status.innerText = "Getting GPS location...";
+  status.innerText =
+    "Getting GPS location...";
 
   navigator.geolocation.getCurrentPosition(
 
     function(position) {
 
-      latitude = position.coords.latitude;
-      longitude = position.coords.longitude;
+      latitude =
+        position.coords.latitude;
+
+      longitude =
+        position.coords.longitude;
 
       status.innerText =
         "GPS recorded: " +
         latitude.toFixed(6) +
         ", " +
         longitude.toFixed(6);
-
     },
 
     function() {
+
       status.innerText =
         "Unable to get GPS location. Check location permissions.";
     },
@@ -243,80 +302,201 @@ function getLocation() {
   );
 }
 
-const voiceButton = document.getElementById("voiceButton");
+const voiceButton =
+  document.getElementById("voiceButton");
 
-voiceButton.addEventListener("click", async function() {
+voiceButton.addEventListener(
+  "click",
+  async function() {
 
-  const status = document.getElementById("voiceStatus");
+    const status =
+      document.getElementById("voiceStatus");
 
-  if (
-    voiceRecorder &&
-    voiceRecorder.state === "recording"
-  ) {
+    if (
+      voiceRecorder &&
+      voiceRecorder.state === "recording"
+    ) {
 
-    voiceRecorder.stop();
+      voiceRecorder.stop();
 
-    voiceButton.innerText =
-      "🎤 Start Voice Recording";
+      voiceButton.innerText =
+        "🎤 Start Voice Recording";
 
-    return;
-  }
+      return;
+    }
 
-  try {
+    try {
 
-    const stream =
-      await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
+      const stream =
+        await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
 
-    voiceChunks = [];
+      voiceChunks = [];
 
-    voiceRecorder =
-      new MediaRecorder(stream);
+      voiceRecorder =
+        new MediaRecorder(stream);
 
-    voiceRecorder.ondataavailable =
-      function(event) {
+      voiceRecorder.ondataavailable =
+        function(event) {
 
-        voiceChunks.push(event.data);
+          if (event.data.size > 0) {
+            voiceChunks.push(event.data);
+          }
 
-      };
+        };
 
-    voiceRecorder.onstop =
-      function() {
+      voiceRecorder.onstop =
+        function() {
 
-        voiceBlob =
-          new Blob(
-            voiceChunks,
-            { type: "audio/webm" }
+          voiceBlob =
+            new Blob(
+              voiceChunks,
+              {
+                type:
+                  voiceRecorder.mimeType ||
+                  "audio/webm"
+              }
+            );
+
+          status.innerText =
+            "Voice recording saved for this report.";
+
+          stream.getTracks().forEach(
+            track => track.stop()
           );
 
-        status.innerText =
-          "Voice recording saved.";
+        };
 
-        stream.getTracks().forEach(
-          track => track.stop()
-        );
+      voiceRecorder.start();
 
-      };
+      status.innerText =
+        "Recording voice...";
 
-    voiceRecorder.start();
+      voiceButton.innerText =
+        "⏹ Stop Recording";
 
-    status.innerText =
-      "Recording voice...";
+    }
 
-    voiceButton.innerText =
-      "⏹ Stop Recording";
+    catch(error) {
 
-  }
+      status.innerText =
+        "Microphone permission was not available.";
 
-  catch(error) {
-
-    status.innerText =
-      "Microphone permission was not available.";
+    }
 
   }
+);
 
-});
+const dictateButton =
+  document.getElementById("dictateButton");
+
+const dictationStatus =
+  document.getElementById("dictationStatus");
+
+const SpeechRecognition =
+  window.SpeechRecognition ||
+  window.webkitSpeechRecognition;
+
+let recognition = null;
+
+if (SpeechRecognition) {
+
+  recognition =
+    new SpeechRecognition();
+
+  recognition.lang =
+    "en-CA";
+
+  recognition.continuous =
+    false;
+
+  recognition.interimResults =
+    false;
+
+  recognition.onstart =
+    function() {
+
+      dictationStatus.innerText =
+        "Listening... speak your description.";
+
+      dictateButton.innerText =
+        "🎙️ Listening...";
+    };
+
+  recognition.onresult =
+    function(event) {
+
+      const spokenText =
+        event.results[0][0].transcript;
+
+      const description =
+        document.getElementById("description");
+
+      if (description.value.trim()) {
+
+        description.value +=
+          " " + spokenText;
+
+      } else {
+
+        description.value =
+          spokenText;
+
+      }
+
+      dictationStatus.innerText =
+        "Voice-to-text added to description.";
+    };
+
+  recognition.onerror =
+    function(event) {
+
+      dictationStatus.innerText =
+        "Voice-to-text error: " +
+        event.error;
+    };
+
+  recognition.onend =
+    function() {
+
+      dictateButton.innerText =
+        "🎙️ Dictate Description";
+    };
+
+  dictateButton.addEventListener(
+    "click",
+    function() {
+
+      try {
+
+        recognition.start();
+
+      }
+
+      catch(error) {
+
+        dictationStatus.innerText =
+          "Voice-to-text is already listening.";
+
+      }
+
+    }
+  );
+
+} else {
+
+  dictateButton.addEventListener(
+    "click",
+    function() {
+
+      dictationStatus.innerText =
+        "Voice-to-text is not available in this browser. Audio recording still works.";
+
+    }
+  );
+
+}
 
 function generateReport() {
 
@@ -340,6 +520,10 @@ function generateReport() {
     ? latitude + ", " + longitude
     : "Not recorded";
 
+  const mediaCount =
+    document.getElementById("media")
+    .files.length;
+
   const report =
 
 `COUNTY ISSUE REPORT
@@ -360,24 +544,26 @@ GPS Location:
 ${gps}
 
 Photo / Video Attachments:
-${document.getElementById("media").files.length}
+${mediaCount}
 
 Voice Recording:
-${voiceBlob ? "Attached" : "Not recorded"}
+${voiceBlob ? "Recorded this session" : "Not recorded"}
 
 Status:
 Reported`;
 
-  document.getElementById("reportOutput")
-    .innerText = report;
+  document.getElementById(
+    "reportOutput"
+  ).innerText = report;
 
 }
 
 function saveReport() {
 
   const report =
-    document.getElementById("reportOutput")
-    .innerText;
+    document.getElementById(
+      "reportOutput"
+    ).innerText;
 
   if (!report) {
 
@@ -395,14 +581,37 @@ function saveReport() {
       )
     ) || [];
 
-  reports.push({
+  reports.unshift({
 
-    id: Date.now(),
+    id:
+      Date.now(),
 
     created:
       new Date().toISOString(),
 
-    report: report,
+    issueType:
+      document.getElementById(
+        "issueType"
+      ).value,
+
+    severity:
+      document.getElementById(
+        "severity"
+      ).value,
+
+    description:
+      document.getElementById(
+        "description"
+      ).value,
+
+    latitude:
+      latitude,
+
+    longitude:
+      longitude,
+
+    report:
+      report,
 
     status:
       "Reported"
@@ -418,7 +627,261 @@ function saveReport() {
     "Report saved on this device."
   );
 
+  renderHistory();
 }
+
+function renderHistory() {
+
+  const container =
+    document.getElementById(
+      "savedReports"
+    );
+
+  const historyStatus =
+    document.getElementById(
+      "historyStatus"
+    );
+
+  const reports =
+    JSON.parse(
+      localStorage.getItem(
+        "countyReports"
+      )
+    ) || [];
+
+  container.innerHTML = "";
+
+  if (reports.length === 0) {
+
+    historyStatus.innerText =
+      "No saved reports yet.";
+
+    return;
+  }
+
+  historyStatus.innerText =
+    reports.length +
+    (reports.length === 1
+      ? " saved report."
+      : " saved reports.");
+
+  reports.forEach(
+    function(item) {
+
+      const box =
+        document.createElement("div");
+
+      box.className =
+        "savedReport";
+
+      const created =
+        item.created
+        ? new Date(
+            item.created
+          ).toLocaleString()
+        : "Saved report";
+
+      const title =
+        document.createElement("strong");
+
+      title.innerText =
+        (item.issueType ||
+          "County Issue") +
+        " — " +
+        created;
+
+      const text =
+        document.createElement("div");
+
+      text.className =
+        "savedReportText";
+
+      text.innerText =
+        item.report ||
+        "Saved report";
+
+      const openButton =
+        document.createElement("button");
+
+      openButton.className =
+        "historyButton";
+
+      openButton.innerText =
+        "Open Report";
+
+      openButton.onclick =
+        function() {
+
+          openSavedReport(
+            item.id
+          );
+
+        };
+
+      const deleteButton =
+        document.createElement("button");
+
+      deleteButton.className =
+        "deleteButton";
+
+      deleteButton.innerText =
+        "Delete This Report";
+
+      deleteButton.onclick =
+        function() {
+
+          deleteSavedReport(
+            item.id
+          );
+
+        };
+
+      box.appendChild(title);
+      box.appendChild(text);
+      box.appendChild(openButton);
+      box.appendChild(deleteButton);
+
+      container.appendChild(box);
+
+    }
+  );
+}
+
+function openSavedReport(id) {
+
+  const reports =
+    JSON.parse(
+      localStorage.getItem(
+        "countyReports"
+      )
+    ) || [];
+
+  const item =
+    reports.find(
+      report =>
+        report.id === id
+    );
+
+  if (!item) {
+    return;
+  }
+
+  document.getElementById(
+    "reportOutput"
+  ).innerText =
+    item.report || "";
+
+  if (item.issueType) {
+    document.getElementById(
+      "issueType"
+    ).value =
+      item.issueType;
+  }
+
+  if (item.severity) {
+    document.getElementById(
+      "severity"
+    ).value =
+      item.severity;
+  }
+
+  if (item.description) {
+    document.getElementById(
+      "description"
+    ).value =
+      item.description;
+  }
+
+  if (
+    item.latitude &&
+    item.longitude
+  ) {
+
+    latitude =
+      item.latitude;
+
+    longitude =
+      item.longitude;
+
+    document.getElementById(
+      "locationStatus"
+    ).innerText =
+      "GPS recorded: " +
+      Number(latitude).toFixed(6) +
+      ", " +
+      Number(longitude).toFixed(6);
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+function deleteSavedReport(id) {
+
+  let reports =
+    JSON.parse(
+      localStorage.getItem(
+        "countyReports"
+      )
+    ) || [];
+
+  reports =
+    reports.filter(
+      report =>
+        report.id !== id
+    );
+
+  localStorage.setItem(
+    "countyReports",
+    JSON.stringify(reports)
+  );
+
+  renderHistory();
+}
+
+function clearReports() {
+
+  const reports =
+    JSON.parse(
+      localStorage.getItem(
+        "countyReports"
+      )
+    ) || [];
+
+  if (
+    reports.length === 0
+  ) {
+
+    alert(
+      "There are no saved reports to clear."
+    );
+
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      "Delete all saved reports from this device?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  localStorage.removeItem(
+    "countyReports"
+  );
+
+  renderHistory();
+
+  alert(
+    "Saved report history cleared."
+  );
+}
+
+renderHistory();
 
 </script>
 
