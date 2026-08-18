@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>County Issue Reporter</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f6f8;
+  color: #222;
+}
+
+header {
+  background: #17365d;
+  color: white;
+  padding: 22px;
+  text-align: center;
+}
+
+main {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 6px;
+}
+
+select,
+textarea,
+input,
+button {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 18px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+textarea,
+select,
+input {
+  border: 1px solid #aaa;
+}
+
+textarea {
+  min-height: 120px;
+}
+
+button {
+  border: none;
+  margin-top: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primary {
+  background: #17365d;
+  color: white;
+}
+
+.location {
+  background: #287a3d;
+  color: white;
+}
+
+.voice {
+  background: #b33a2b;
+  color: white;
+}
+
+.save {
+  background: #e58b20;
+  color: black;
+}
+
+.status {
+  margin-top: 10px;
+  padding: 10px;
+  background: #eee;
+  border-radius: 8px;
+}
+
+#reportOutput {
+  white-space: pre-wrap;
+  background: #f0f0f0;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+h2 {
+  margin-top: 0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>County Issue Reporter</h1>
+  <p>Report road and infrastructure problems 24/7</p>
+</header>
+
+<main>
+
+<div class="card">
+
+<h2>Report an Issue</h2>
+
+<label for="issueType">Issue Type</label>
+
+<select id="issueType">
+  <option value="">Choose an issue</option>
+  <option>Washboard</option>
+  <option>Pothole</option>
+  <option>Loose Gravel</option>
+  <option>Gravel in Ditch</option>
+  <option>Drainage</option>
+  <option>Culvert</option>
+  <option>Flooding</option>
+  <option>Snow / Ice</option>
+  <option>Road Damage</option>
+  <option>Sign Damage</option>
+  <option>Tree / Brush</option>
+  <option>Other</option>
+</select>
+
+<label for="severity">Severity</label>
+
+<select id="severity">
+  <option>Low</option>
+  <option selected>Medium</option>
+  <option>High</option>
+  <option>Urgent</option>
+</select>
+
+<label for="description">Describe the Problem</label>
+
+<textarea
+id="description"
+placeholder="Example: Heavy washboard across the entire road. Loose gravel has also been pushed into the ditch."
+></textarea>
+
+<button class="voice" id="voiceButton">
+🎤 Start Voice Recording
+</button>
+
+<div id="voiceStatus" class="status">
+No voice recording yet.
+</div>
+
+<label>Photo or Video</label>
+
+<input
+type="file"
+id="media"
+accept="image/*,video/*"
+capture="environment"
+multiple
+>
+
+<button class="location" onclick="getLocation()">
+📍 Get GPS Location
+</button>
+
+<div id="locationStatus" class="status">
+GPS location not recorded yet.
+</div>
+
+<button class="primary" onclick="generateReport()">
+Create Professional Report
+</button>
+
+<div id="reportOutput"></div>
+
+<button class="save" onclick="saveReport()">
+Save Report
+</button>
+
+</div>
+
+</main>
+
+<script>
+
+let latitude = "";
+let longitude = "";
+let voiceRecorder = null;
+let voiceChunks = [];
+let voiceBlob = null;
+
+function getLocation() {
+
+  const status = document.getElementById("locationStatus");
+
+  if (!navigator.geolocation) {
+    status.innerText = "GPS is not supported on this device.";
+    return;
+  }
+
+  status.innerText = "Getting GPS location...";
+
+  navigator.geolocation.getCurrentPosition(
+
+    function(position) {
+
+      latitude = position.coords.latitude;
+      longitude = position.coords.longitude;
+
+      status.innerText =
+        "GPS recorded: " +
+        latitude.toFixed(6) +
+        ", " +
+        longitude.toFixed(6);
+
+    },
+
+    function() {
+      status.innerText =
+        "Unable to get GPS location. Check location permissions.";
+    },
+
+    {
+      enableHighAccuracy: true
+    }
+
+  );
+}
+
+const voiceButton = document.getElementById("voiceButton");
+
+voiceButton.addEventListener("click", async function() {
+
+  const status = document.getElementById("voiceStatus");
+
+  if (
+    voiceRecorder &&
+    voiceRecorder.state === "recording"
+  ) {
+
+    voiceRecorder.stop();
+
+    voiceButton.innerText =
+      "🎤 Start Voice Recording";
+
+    return;
+  }
+
+  try {
+
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+        audio: true
+      });
+
+    voiceChunks = [];
+
+    voiceRecorder =
+      new MediaRecorder(stream);
+
+    voiceRecorder.ondataavailable =
+      function(event) {
+
+        voiceChunks.push(event.data);
+
+      };
+
+    voiceRecorder.onstop =
+      function() {
+
+        voiceBlob =
+          new Blob(
+            voiceChunks,
+            { type: "audio/webm" }
+          );
+
+        status.innerText =
+          "Voice recording saved.";
+
+        stream.getTracks().forEach(
+          track => track.stop()
+        );
+
+      };
+
+    voiceRecorder.start();
+
+    status.innerText =
+      "Recording voice...";
+
+    voiceButton.innerText =
+      "⏹ Stop Recording";
+
+  }
+
+  catch(error) {
+
+    status.innerText =
+      "Microphone permission was not available.";
+
+  }
+
+});
+
+function generateReport() {
+
+  const issueType =
+    document.getElementById("issueType").value;
+
+  const severity =
+    document.getElementById("severity").value;
+
+  const description =
+    document.getElementById("description").value;
+
+  const now =
+    new Date();
+
+  const dateTime =
+    now.toLocaleString();
+
+  const gps =
+    latitude && longitude
+    ? latitude + ", " + longitude
+    : "Not recorded";
+
+  const report =
+
+`COUNTY ISSUE REPORT
+
+Date / Time:
+${dateTime}
+
+Issue Type:
+${issueType || "Not selected"}
+
+Severity:
+${severity}
+
+Description:
+${description || "No description entered"}
+
+GPS Location:
+${gps}
+
+Photo / Video Attachments:
+${document.getElementById("media").files.length}
+
+Voice Recording:
+${voiceBlob ? "Attached" : "Not recorded"}
+
+Status:
+Reported`;
+
+  document.getElementById("reportOutput")
+    .innerText = report;
+
+}
+
+function saveReport() {
+
+  const report =
+    document.getElementById("reportOutput")
+    .innerText;
+
+  if (!report) {
+
+    alert(
+      "Create the report first."
+    );
+
+    return;
+  }
+
+  let reports =
+    JSON.parse(
+      localStorage.getItem(
+        "countyReports"
+      )
+    ) || [];
+
+  reports.push({
+
+    id: Date.now(),
+
+    created:
+      new Date().toISOString(),
+
+    report: report,
+
+    status:
+      "Reported"
+
+  });
+
+  localStorage.setItem(
+    "countyReports",
+    JSON.stringify(reports)
+  );
+
+  alert(
+    "Report saved on this device."
+  );
+
+}
+
+</script>
+
+</body>
+</html>
