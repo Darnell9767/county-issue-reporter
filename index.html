@@ -1,363 +1,719 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>County Issue Reporter</title>
-<style>
-body{font-family:Arial,sans-serif;margin:0;background:#f4f6f8;color:#222}header{background:#17365d;color:white;padding:22px;text-align:center}main{max-width:700px;margin:auto;padding:20px}.card{background:white;padding:20px;margin-bottom:18px;border-radius:12px}label{display:block;font-weight:bold;margin-top:15px;margin-bottom:6px}select,textarea,input,button{width:100%;box-sizing:border-box;font-size:18px;padding:12px;border-radius:8px}textarea,select,input{border:1px solid #aaa}textarea{min-height:120px}button{border:none;margin-top:12px;font-weight:bold;cursor:pointer}.primary{background:#17365d;color:white}.location{background:#287a3d;color:white}.voice{background:#b33a2b;color:white}.dictate{background:#5067a8;color:white}.save{background:#e58b20;color:black}.historyButton{background:#555;color:white}.deleteButton{background:#a83232;color:white}.status{margin-top:10px;padding:10px;background:#eee;border-radius:8px}#reportOutput{white-space:pre-wrap;background:#f0f0f0;padding:15px;border-radius:8px;margin-top:15px}.savedReport{background:#f4f6f8;padding:15px;border-radius:10px;margin-top:12px}.savedReportText{white-space:pre-wrap;font-size:14px;max-height:180px;overflow:auto}#attachmentPreview{margin-top:15px}.attachmentCard{background:#eef2f5;padding:12px;border-radius:8px;margin-top:10px}.savedMedia{display:block;max-width:100%;width:100%;margin-top:8px;border-radius:8px}.mediaChoice{background:#f7f8fa;padding:12px;border-radius:8px;margin-top:10px}h2{margin-top:0}
-</style>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Darnell's App</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
 </head>
+
 <body>
-<header><h1>County Issue Reporter</h1><p>Report road and infrastructure problems 24/7</p></header>
+
+<header class="topbar">
+  <div>
+    <h1>Darnell's App</h1>
+    <p>See it. Report it. Help fix it.</p>
+  </div>
+</header>
+
 <main>
-<div class="card">
-<h2>Report an Issue</h2>
-<label for="issueType">Issue Type</label>
-<select id="issueType"><option value="">Choose an issue</option><option>Washboard</option><option>Pothole</option><option>Loose Gravel</option><option>Gravel in Ditch</option><option>Drainage</option><option>Culvert</option><option>Flooding</option><option>Snow / Ice</option><option>Road Damage</option><option>Sign Damage</option><option>Tree / Brush</option><option>Other</option></select>
-<label for="severity">Severity</label>
-<select id="severity"><option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option></select>
-<label for="description">Describe the Problem</label>
-<textarea id="description" placeholder="Example: Heavy washboard across the entire road. Loose gravel has also been pushed into the ditch."></textarea>
-<button class="dictate" id="dictateButton">🎙️ Dictate Description</button>
-<div id="dictationStatus" class="status">Voice-to-text ready.</div>
-<button class="voice" id="voiceButton">🎤 Start Voice Recording</button>
-<div id="voiceStatus" class="status">No voice recording yet.</div>
-<label>Photo or Video</label>
-<div class="mediaChoice">
-<label for="cameraMedia">Take a New Photo or Video</label>
-<input type="file" id="cameraMedia" accept="image/*,video/*" capture="environment">
-</div>
-<div class="mediaChoice">
-<label for="libraryMedia">Choose Existing Photo or Video</label>
-<input type="file" id="libraryMedia" accept="image/*,video/*" multiple>
-</div>
-<div id="mediaStatus" class="status">No photo or video selected.</div>
-<button class="location" onclick="getLocation()">📍 Get GPS Location</button>
-<div id="locationStatus" class="status">GPS location not recorded yet.</div>
-<button class="primary" onclick="generateReport()">Create Professional Report</button>
-<div id="reportOutput"></div>
-<div id="attachmentPreview"></div>
-<button class="save" onclick="saveReport()">Save Report</button>
-</div>
-<div class="card">
-<h2>Saved Report History</h2>
-<div id="historyStatus" class="status">Loading saved reports...</div>
-<div id="savedReports"></div>
-<button class="deleteButton" onclick="clearReports()">Clear All Saved Reports</button>
-</div>
+
+  <!-- HOME -->
+
+  <section id="homeScreen" class="screen active">
+
+    <div class="hero-card">
+
+      <div class="hero-icon">
+        🛣️
+      </div>
+
+      <h2>
+        Help improve the roads we all pay for.
+      </h2>
+
+      <p>
+        Darnell's App helps residents clearly document road and
+        infrastructure problems so decision-makers can see where
+        problems are actually happening.
+      </p>
+
+      <div class="info-box">
+        <strong>⏱ Takes about 2 minutes</strong>
+
+        <p>
+          We will guide you through every step.
+          You do not need to know road terminology.
+        </p>
+      </div>
+
+      <button class="big-button primary" onclick="startReport()">
+        📍 Start a New Report
+      </button>
+
+      <button class="big-button secondary" onclick="showSavedReports()">
+        📂 View Saved Reports
+      </button>
+
+    </div>
+
+
+    <div class="education-card">
+
+      <h3>
+        Why report road problems?
+      </h3>
+
+      <p>
+        Good information helps crews and administrators understand
+        where maintenance is actually needed.
+      </p>
+
+      <p>
+        Repeated reports from the same area can help identify
+        recurring problems instead of treating every report
+        as an isolated event.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- STEP 1 -->
+
+  <section id="step1" class="screen">
+
+    <div class="step-header">
+
+      <span class="step-number">
+        Step 1 of 6
+      </span>
+
+      <h2>
+        📍 Where is the problem?
+      </h2>
+
+      <p>
+        Your location is one of the most important parts of the report.
+      </p>
+
+    </div>
+
+
+    <div class="why-box">
+
+      <strong>
+        Why are we asking?
+      </strong>
+
+      <p>
+        A clear location lets crews find the exact problem instead
+        of searching kilometres of road.
+      </p>
+
+    </div>
+
+
+    <div id="map"></div>
+
+
+    <button class="big-button gps" onclick="findMyLocation()">
+      📍 Use My Current Location
+    </button>
+
+
+    <div id="locationMessage" class="status-box">
+      Location has not been recorded yet.
+    </div>
+
+
+    <div class="tip-box">
+
+      <strong>
+        💡 You can also tap the map.
+      </strong>
+
+      <p>
+        If the problem is somewhere different from where you are standing,
+        tap that location directly.
+      </p>
+
+    </div>
+
+
+    <div class="navigation-row">
+
+      <button class="back-button" onclick="showScreen('homeScreen')">
+        ← Back
+      </button>
+
+      <button class="next-button" onclick="goToStep2()">
+        Next →
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- STEP 2 -->
+
+  <section id="step2" class="screen">
+
+    <div class="step-header">
+
+      <span class="step-number">
+        Step 2 of 6
+      </span>
+
+      <h2>
+        🚧 What is wrong?
+      </h2>
+
+      <p>
+        Pick the option that best describes what you see.
+      </p>
+
+    </div>
+
+
+    <div class="why-box">
+
+      <strong>
+        Why does this matter?
+      </strong>
+
+      <p>
+        Different problems require different equipment,
+        materials and crews.
+      </p>
+
+    </div>
+
+
+    <div id="issueGrid" class="issue-grid">
+
+      <button class="issue-card" data-issue="Washboard">
+        <span>〰️</span>
+        <strong>Washboard</strong>
+        <small>Repeated ridges or ripples in the road.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Pothole">
+        <span>🕳️</span>
+        <strong>Pothole</strong>
+        <small>Hole or depression in the driving surface.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Loose Gravel">
+        <span>🪨</span>
+        <strong>Loose Gravel</strong>
+        <small>Excess loose material on the road.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Gravel in Ditch">
+        <span>⛰️</span>
+        <strong>Gravel in Ditch</strong>
+        <small>Road material pushed off the driving surface.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Drainage">
+        <span>💧</span>
+        <strong>Drainage</strong>
+        <small>Water is not leaving the roadway properly.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Culvert">
+        <span>⭕</span>
+        <strong>Culvert</strong>
+        <small>Blocked, damaged or failing culvert.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Flooding">
+        <span>🌊</span>
+        <strong>Flooding</strong>
+        <small>Water covering or threatening the road.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Snow / Ice">
+        <span>❄️</span>
+        <strong>Snow / Ice</strong>
+        <small>Snow buildup or dangerous icy conditions.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Road Damage">
+        <span>⚠️</span>
+        <strong>Road Damage</strong>
+        <small>Rutting, erosion, soft spots or structural damage.</small>
+      </button>
+
+
+      <button class="issue-card" data-issue="Other">
+        <span>📝</span>
+        <strong>Other</strong>
+        <small>Something not listed here.</small>
+      </button>
+
+    </div>
+
+
+    <div class="navigation-row">
+
+      <button class="back-button" onclick="showScreen('step1')">
+        ← Back
+      </button>
+
+      <button class="next-button" onclick="goToStep3()">
+        Next →
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- STEP 3 -->
+
+  <section id="step3" class="screen">
+
+    <div class="step-header">
+
+      <span class="step-number">
+        Step 3 of 6
+      </span>
+
+      <h2>
+        📸 Show us the problem.
+      </h2>
+
+      <p>
+        Good photos can explain a road problem better
+        than a paragraph of text.
+      </p>
+
+    </div>
+
+
+    <div class="why-box">
+
+      <strong>
+        Why take pictures?
+      </strong>
+
+      <p>
+        Photos help show the size, severity and surrounding conditions
+        before someone is sent to inspect the area.
+      </p>
+
+    </div>
+
+
+    <div class="photo-guide">
+
+      <h3>
+        Take useful photos
+      </h3>
+
+
+      <div class="photo-tip">
+
+        <span>1️⃣</span>
+
+        <div>
+          <strong>Take one wide photo.</strong>
+
+          <p>
+            Show the whole road and surrounding area so people understand
+            where the problem is.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="photo-tip">
+
+        <span>2️⃣</span>
+
+        <div>
+          <strong>Take one close photo.</strong>
+
+          <p>
+            Show the actual washboard, pothole, gravel buildup or damage.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="photo-tip">
+
+        <span>☀️</span>
+
+        <div>
+          <strong>Keep the sun behind you when possible.</strong>
+
+          <p>
+            Shooting directly into bright sunlight can hide the problem
+            and make the photo nearly useless.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="photo-tip">
+
+        <span>📏</span>
+
+        <div>
+          <strong>Give the photo some scale.</strong>
+
+          <p>
+            Include part of the road, ditch, vehicle tire, sign or another
+            safe reference when useful.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="photo-tip warning">
+
+        <span>🦺</span>
+
+        <div>
+          <strong>Safety first.</strong>
+
+          <p>
+            Do not stand in traffic or put yourself in danger
+            just to get a photograph.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <label class="upload-title">
+      Take a new photo or video
+    </label>
+
+    <input
+      type="file"
+      id="cameraMedia"
+      accept="image/*,video/*"
+      capture="environment"
+    >
+
+
+    <label class="upload-title">
+      Choose existing photos or videos
+    </label>
+
+    <input
+      type="file"
+      id="existingMedia"
+      accept="image/*,video/*"
+      multiple
+    >
+
+
+    <div id="mediaStatus" class="status-box">
+      No photos or videos selected yet.
+    </div>
+
+
+    <div class="navigation-row">
+
+      <button class="back-button" onclick="showScreen('step2')">
+        ← Back
+      </button>
+
+      <button class="next-button" onclick="showScreen('step4')">
+        Next →
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- STEP 4 -->
+
+  <section id="step4" class="screen">
+
+    <div class="step-header">
+
+      <span class="step-number">
+        Step 4 of 6
+      </span>
+
+      <h2>
+        🎙️ Tell us what you noticed.
+      </h2>
+
+      <p>
+        Talk naturally. You do not need to write a formal report.
+      </p>
+
+    </div>
+
+
+    <div class="why-box">
+
+      <strong>
+        What should you mention?
+      </strong>
+
+      <p>
+        Describe what you saw, how long the affected area is,
+        whether it is getting worse, and anything that could affect
+        safety or maintenance.
+      </p>
+
+    </div>
+
+
+    <div class="example-box">
+
+      <strong>
+        Example:
+      </strong>
+
+      <p>
+        “The washboard starts about 200 metres west of the intersection
+        and continues for roughly half a kilometre. The worst section is
+        on the south side of the road.”
+      </p>
+
+    </div>
+
+
+    <textarea
+      id="description"
+      placeholder="Type your description here or use the voice button below."
+    ></textarea>
+
+
+    <button id="dictateButton" class="big-button voice-text">
+      🎙️ Speak My Description
+    </button>
+
+
+    <div id="dictationStatus" class="status-box">
+      Voice-to-text ready.
+    </div>
+
+
+    <button id="audioButton" class="big-button audio">
+      🎤 Record Voice Note
+    </button>
+
+
+    <div id="audioStatus" class="status-box">
+      No voice note recorded.
+    </div>
+
+
+    <div class="navigation-row">
+
+      <button class="back-button" onclick="showScreen('step3')">
+        ← Back
+      </button>
+
+      <button class="next-button" onclick="showScreen('step5')">
+        Next →
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- STEP 5 -->
+
+  <section id="step5" class="screen">
+
+    <div class="step-header">
+
+      <span class="step-number">
+        Step 5 of 6
+      </span>
+
+      <h2>
+        ⚠️ How serious is it?
+      </h2>
+
+      <p>
+        Choose the level that best matches what you see.
+      </p>
+
+    </div>
+
+
+    <div class="severity-grid">
+
+      <button class="severity-card low" data-severity="Low">
+        <strong>🟢 Low</strong>
+        <span>Noticeable problem but traffic can travel normally.</span>
+      </button>
+
+
+      <button class="severity-card medium" data-severity="Medium">
+        <strong>🟡 Medium</strong>
+        <span>Needs attention and is affecting road quality.</span>
+      </button>
+
+
+      <button class="severity-card high" data-severity="High">
+        <strong>🟠 High</strong>
+        <span>Significant problem affecting safe or normal travel.</span>
+      </button>
+
+
+      <button class="severity-card urgent" data-severity="Urgent">
+        <strong>🔴 Urgent</strong>
+        <span>
+          Immediate hazard, major flooding, severe obstruction
+          or serious safety concern.
+        </span>
+      </button>
+
+    </div>
+
+
+    <div class="warning-box">
+
+      <strong>
+        🚨 Emergency?
+      </strong>
+
+      <p>
+        This reporting tool is not a replacement for emergency services.
+        If there is immediate danger to life, contact emergency services.
+      </p>
+
+    </div>
+
+
+    <div class="navigation-row">
+
+      <button class="back-button" onclick="showScreen('step4')">
+        ← Back
+      </button>
+
+      <button class="next-button" onclick="buildReview()">
+        Review Report →
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- STEP 6 -->
+
+  <section id="step6" class="screen">
+
+    <div class="step-header">
+
+      <span class="step-number">
+        Step 6 of 6
+      </span>
+
+      <h2>
+        ✅ Review your report.
+      </h2>
+
+      <p>
+        Make sure the information clearly shows what is happening.
+      </p>
+
+    </div>
+
+
+    <div id="reviewCard" class="review-card"></div>
+
+
+    <button class="big-button primary" onclick="saveReport()">
+      ✅ Save Report
+    </button>
+
+
+    <div class="navigation-row">
+
+      <button class="back-button" onclick="showScreen('step5')">
+        ← Back
+      </button>
+
+      <button class="secondary-button" onclick="showScreen('homeScreen')">
+        Home
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- SAVED REPORTS -->
+
+  <section id="savedScreen" class="screen">
+
+    <div class="step-header">
+
+      <h2>
+        📂 Saved Reports
+      </h2>
+
+      <p>
+        Review reports you have documented on this device.
+      </p>
+
+    </div>
+
+
+    <div id="savedReports"></div>
+
+
+    <button class="big-button secondary" onclick="showScreen('homeScreen')">
+      ← Back Home
+    </button>
+
+  </section>
+
 </main>
-<script>
-let latitude="";
-let longitude="";
-let voiceRecorder=null;
-let voiceChunks=[];
-let voiceBlob=null;
-let previewUrls=[];
 
-const DB_NAME="countyIssueReporterDB";
-const DB_VERSION=1;
-const STORE_NAME="reportAttachments";
 
-function getSelectedMediaFiles(){
-  return [...Array.from(document.getElementById("cameraMedia").files||[]),...Array.from(document.getElementById("libraryMedia").files||[])];
-}
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
 
-function updateMediaStatus(){
-  const files=getSelectedMediaFiles();
-  const status=document.getElementById("mediaStatus");
-  if(files.length===0){status.innerText="No photo or video selected.";return;}
-  status.innerText=files.length+(files.length===1?" photo/video selected: ":" photos/videos selected: ")+files.map(file=>file.name||"camera capture").join(", ");
-}
+<script src="app.js"></script>
 
-document.getElementById("cameraMedia").addEventListener("change",updateMediaStatus);
-document.getElementById("libraryMedia").addEventListener("change",updateMediaStatus);
-
-function openAttachmentDB(){
-  return new Promise((resolve,reject)=>{
-    if(!window.indexedDB){reject(new Error("IndexedDB is not available"));return;}
-    const request=indexedDB.open(DB_NAME,DB_VERSION);
-    request.onupgradeneeded=()=>{
-      const db=request.result;
-      if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:"reportId"});
-    };
-    request.onsuccess=()=>resolve(request.result);
-    request.onerror=()=>reject(request.error);
-  });
-}
-
-async function saveAttachments(reportId,files,audio){
-  const db=await openAttachmentDB();
-  const media=files.map(file=>({name:file.name||"attachment",type:file.type||"application/octet-stream",size:file.size||0,blob:file.slice(0,file.size,file.type)}));
-  const voice=audio?{type:audio.type||"audio/webm",size:audio.size||0,blob:audio.slice(0,audio.size,audio.type)}:null;
-  return new Promise((resolve,reject)=>{
-    const tx=db.transaction(STORE_NAME,"readwrite");
-    tx.objectStore(STORE_NAME).put({reportId,media,voice,savedAt:new Date().toISOString()});
-    tx.oncomplete=()=>{db.close();resolve();};
-    tx.onerror=()=>{const error=tx.error;db.close();reject(error);};
-    tx.onabort=()=>{const error=tx.error;db.close();reject(error);};
-  });
-}
-
-async function getAttachments(reportId){
-  try{
-    const db=await openAttachmentDB();
-    return await new Promise((resolve,reject)=>{
-      const tx=db.transaction(STORE_NAME,"readonly");
-      const request=tx.objectStore(STORE_NAME).get(reportId);
-      request.onsuccess=()=>resolve(request.result||null);
-      request.onerror=()=>reject(request.error);
-      tx.oncomplete=()=>db.close();
-    });
-  }catch(error){console.error(error);return null;}
-}
-
-async function deleteAttachments(reportId){
-  try{
-    const db=await openAttachmentDB();
-    await new Promise((resolve,reject)=>{
-      const tx=db.transaction(STORE_NAME,"readwrite");
-      tx.objectStore(STORE_NAME).delete(reportId);
-      tx.oncomplete=()=>resolve();
-      tx.onerror=()=>reject(tx.error);
-    });
-    db.close();
-  }catch(error){console.error(error);}
-}
-
-async function clearAttachments(){
-  try{
-    const db=await openAttachmentDB();
-    await new Promise((resolve,reject)=>{
-      const tx=db.transaction(STORE_NAME,"readwrite");
-      tx.objectStore(STORE_NAME).clear();
-      tx.oncomplete=()=>resolve();
-      tx.onerror=()=>reject(tx.error);
-    });
-    db.close();
-  }catch(error){console.error(error);}
-}
-
-function clearAttachmentPreview(){
-  previewUrls.forEach(url=>URL.revokeObjectURL(url));
-  previewUrls=[];
-  document.getElementById("attachmentPreview").innerHTML="";
-}
-
-async function displaySavedAttachments(reportId){
-  clearAttachmentPreview();
-  const container=document.getElementById("attachmentPreview");
-  const data=await getAttachments(reportId);
-  if(!data||((!data.media||data.media.length===0)&&!data.voice)){
-    const note=document.createElement("div");
-    note.className="status";
-    note.innerText="No stored photo/video or voice attachment found for this report. Older reports saved before this upgrade will not have their original files.";
-    container.appendChild(note);
-    return;
-  }
-  const heading=document.createElement("h3");
-  heading.innerText="Saved Attachments";
-  container.appendChild(heading);
-  (data.media||[]).forEach(item=>{
-    const card=document.createElement("div");
-    card.className="attachmentCard";
-    const label=document.createElement("strong");
-    label.innerText=item.name||"Saved attachment";
-    card.appendChild(label);
-    const url=URL.createObjectURL(item.blob);
-    previewUrls.push(url);
-    let element;
-    if((item.type||"").startsWith("image/")){
-      element=document.createElement("img");
-      element.alt=item.name||"Saved photo";
-    }else if((item.type||"").startsWith("video/")){
-      element=document.createElement("video");
-      element.controls=true;
-    }else{
-      element=document.createElement("a");
-      element.innerText="Open attachment";
-      element.href=url;
-      element.target="_blank";
-    }
-    element.src=url;
-    element.className="savedMedia";
-    card.appendChild(element);
-    container.appendChild(card);
-  });
-  if(data.voice&&data.voice.blob){
-    const card=document.createElement("div");
-    card.className="attachmentCard";
-    const label=document.createElement("strong");
-    label.innerText="Saved Voice Recording";
-    const audio=document.createElement("audio");
-    audio.controls=true;
-    const url=URL.createObjectURL(data.voice.blob);
-    previewUrls.push(url);
-    audio.src=url;
-    audio.className="savedMedia";
-    card.appendChild(label);
-    card.appendChild(audio);
-    container.appendChild(card);
-  }
-}
-
-function getLocation(){
-  const status=document.getElementById("locationStatus");
-  if(!navigator.geolocation){status.innerText="GPS is not supported on this device.";return;}
-  status.innerText="Getting GPS location...";
-  navigator.geolocation.getCurrentPosition(position=>{
-    latitude=position.coords.latitude;
-    longitude=position.coords.longitude;
-    status.innerText="GPS recorded: "+latitude.toFixed(6)+", "+longitude.toFixed(6);
-  },()=>{status.innerText="Unable to get GPS location. Check location permissions.";},{enableHighAccuracy:true});
-}
-
-const voiceButton=document.getElementById("voiceButton");
-voiceButton.addEventListener("click",async function(){
-  const status=document.getElementById("voiceStatus");
-  if(voiceRecorder&&voiceRecorder.state==="recording"){
-    voiceRecorder.stop();
-    voiceButton.innerText="🎤 Start Voice Recording";
-    return;
-  }
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    voiceChunks=[];
-    voiceRecorder=new MediaRecorder(stream);
-    voiceRecorder.ondataavailable=event=>{if(event.data.size>0)voiceChunks.push(event.data);};
-    voiceRecorder.onstop=()=>{
-      voiceBlob=new Blob(voiceChunks,{type:voiceRecorder.mimeType||"audio/webm"});
-      status.innerText="Voice recording saved for this report.";
-      stream.getTracks().forEach(track=>track.stop());
-    };
-    voiceRecorder.start();
-    status.innerText="Recording voice...";
-    voiceButton.innerText="⏹ Stop Recording";
-  }catch(error){status.innerText="Microphone permission was not available.";}
-});
-
-const dictateButton=document.getElementById("dictateButton");
-const dictationStatus=document.getElementById("dictationStatus");
-const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-let recognition=null;
-if(SpeechRecognition){
-  recognition=new SpeechRecognition();
-  recognition.lang="en-CA";
-  recognition.continuous=false;
-  recognition.interimResults=false;
-  recognition.onstart=()=>{dictationStatus.innerText="Listening... speak your description.";dictateButton.innerText="🎙️ Listening...";};
-  recognition.onresult=event=>{
-    const spokenText=event.results[0][0].transcript;
-    const description=document.getElementById("description");
-    description.value=description.value.trim()?description.value+" "+spokenText:spokenText;
-    dictationStatus.innerText="Voice-to-text added to description.";
-  };
-  recognition.onerror=event=>{dictationStatus.innerText=event.error==="aborted"?"Voice-to-text stopped.":"Voice-to-text error: "+event.error;};
-  recognition.onend=()=>{dictateButton.innerText="🎙️ Dictate Description";};
-  dictateButton.addEventListener("click",()=>{try{recognition.start();}catch(error){dictationStatus.innerText="Voice-to-text is already listening.";}});
-}else{
-  dictateButton.addEventListener("click",()=>{dictationStatus.innerText="Voice-to-text is not available in this browser. Audio recording still works.";});
-}
-
-function generateReport(){
-  const issueType=document.getElementById("issueType").value;
-  const severity=document.getElementById("severity").value;
-  const description=document.getElementById("description").value;
-  const dateTime=new Date().toLocaleString();
-  const gps=latitude&&longitude?latitude+", "+longitude:"Not recorded";
-  const mediaCount=getSelectedMediaFiles().length;
-  const report=`COUNTY ISSUE REPORT\n\nDate / Time:\n${dateTime}\n\nIssue Type:\n${issueType||"Not selected"}\n\nSeverity:\n${severity}\n\nDescription:\n${description||"No description entered"}\n\nGPS Location:\n${gps}\n\nPhoto / Video Attachments:\n${mediaCount}\n\nVoice Recording:\n${voiceBlob?"Recorded this session":"Not recorded"}\n\nStatus:\nReported`;
-  document.getElementById("reportOutput").innerText=report;
-  clearAttachmentPreview();
-}
-
-async function saveReport(){
-  const report=document.getElementById("reportOutput").innerText;
-  if(!report){alert("Create the report first.");return;}
-  const reportId=Date.now();
-  const files=getSelectedMediaFiles();
-  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
-  let attachmentSaved=true;
-  try{await saveAttachments(reportId,files,voiceBlob);}catch(error){console.error(error);attachmentSaved=false;}
-  let reports=JSON.parse(localStorage.getItem("countyReports"))||[];
-  reports.unshift({id:reportId,created:new Date().toISOString(),issueType:document.getElementById("issueType").value,severity:document.getElementById("severity").value,description:document.getElementById("description").value,latitude,longitude,report,status:"Reported",mediaCount:files.length,voiceRecorded:!!voiceBlob,attachmentsStored:attachmentSaved});
-  localStorage.setItem("countyReports",JSON.stringify(reports));
-  alert(attachmentSaved?"Report and attachments saved on this device.":"Report details saved, but Safari could not store the photo/audio attachments. Try smaller files or check available storage.");
-  renderHistory();
-}
-
-function renderHistory(){
-  const container=document.getElementById("savedReports");
-  const historyStatus=document.getElementById("historyStatus");
-  const reports=JSON.parse(localStorage.getItem("countyReports"))||[];
-  container.innerHTML="";
-  if(reports.length===0){historyStatus.innerText="No saved reports yet.";return;}
-  historyStatus.innerText=reports.length+(reports.length===1?" saved report.":" saved reports.");
-  reports.forEach(item=>{
-    const box=document.createElement("div");
-    box.className="savedReport";
-    const created=item.created?new Date(item.created).toLocaleString():"Saved report";
-    const title=document.createElement("strong");
-    title.innerText=(item.issueType||"County Issue")+" — "+created;
-    const text=document.createElement("div");
-    text.className="savedReportText";
-    text.innerText=item.report||"Saved report";
-    const attachmentSummary=document.createElement("div");
-    attachmentSummary.className="status";
-    if(item.attachmentsStored===true){attachmentSummary.innerText="Stored attachments: "+(item.mediaCount||0)+" photo/video"+(item.voiceRecorded?" + voice recording":"");}
-    else if(item.attachmentsStored===false){attachmentSummary.innerText="Report details saved, but attachment storage failed.";}
-    else{attachmentSummary.innerText="Older report: attachment files were not stored by the earlier app version.";}
-    const openButton=document.createElement("button");
-    openButton.className="historyButton";
-    openButton.innerText="Open Report";
-    openButton.onclick=()=>openSavedReport(item.id);
-    const deleteButton=document.createElement("button");
-    deleteButton.className="deleteButton";
-    deleteButton.innerText="Delete This Report";
-    deleteButton.onclick=()=>deleteSavedReport(item.id);
-    box.appendChild(title);box.appendChild(text);box.appendChild(attachmentSummary);box.appendChild(openButton);box.appendChild(deleteButton);container.appendChild(box);
-  });
-}
-
-async function openSavedReport(id){
-  const reports=JSON.parse(localStorage.getItem("countyReports"))||[];
-  const item=reports.find(report=>report.id===id);
-  if(!item)return;
-  document.getElementById("reportOutput").innerText=item.report||"";
-  if(item.issueType)document.getElementById("issueType").value=item.issueType;
-  if(item.severity)document.getElementById("severity").value=item.severity;
-  if(item.description)document.getElementById("description").value=item.description;
-  document.getElementById("cameraMedia").value="";
-  document.getElementById("libraryMedia").value="";
-  updateMediaStatus();
-  voiceBlob=null;
-  document.getElementById("voiceStatus").innerText="Opened saved report. Stored voice, if available, is shown below.";
-  if(item.latitude&&item.longitude){latitude=item.latitude;longitude=item.longitude;document.getElementById("locationStatus").innerText="GPS recorded: "+Number(latitude).toFixed(6)+", "+Number(longitude).toFixed(6);}
-  await displaySavedAttachments(id);
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-async function deleteSavedReport(id){
-  let reports=JSON.parse(localStorage.getItem("countyReports"))||[];
-  reports=reports.filter(report=>report.id!==id);
-  localStorage.setItem("countyReports",JSON.stringify(reports));
-  await deleteAttachments(id);
-  clearAttachmentPreview();
-  renderHistory();
-}
-
-async function clearReports(){
-  const reports=JSON.parse(localStorage.getItem("countyReports"))||[];
-  if(reports.length===0){alert("There are no saved reports to clear.");return;}
-  if(!confirm("Delete all saved reports and stored attachments from this device?"))return;
-  localStorage.removeItem("countyReports");
-  await clearAttachments();
-  clearAttachmentPreview();
-  renderHistory();
-  alert("Saved report history and attachments cleared.");
-}
-
-renderHistory();
-</script>
 </body>
 </html>
