@@ -6,6 +6,12 @@ A simple mental health support app for people who need somewhere to talk. Share 
 
 The companion is AI. It offers general support and encouragement; it does not provide therapy or replace a qualified clinician.
 
+## Try the hosted app
+
+[Open Darnell's App](https://darnells-support-chat.goodlyfolio2.chatgpt.site)
+
+This is a private test app and uses ChatGPT sign-in. Hosting is ready. Live AI replies still need the OpenAI Developers connection and server API key setup.
+
 ## What works now
 
 - **One chat screen:** Type a message and get an AI reply once the server is connected.
@@ -25,7 +31,7 @@ Encouragement should recognize real effort and strengths. The AI is instructed t
 3. Tap **Send message**.
 4. Keep talking at your own pace.
 
-No account is required for this private prototype. A server connection and API key are required for AI replies. If they are missing, the app says so rather than inventing a reply.
+No account is required for the local prototype. The hosted test uses ChatGPT sign-in. A server connection and API key are required for AI replies. If they are missing, the app says so rather than inventing a reply.
 
 ## Run it
 
@@ -38,7 +44,7 @@ Use Node.js 22.9 or later. There are no package dependencies to install.
 
 Keep the key on the server. Never put it in browser code or commit `.env`.
 
-The server listens on localhost by default. Hosting requires a Node server and HTTPS; GitHub Pages alone cannot run the AI endpoint.
+The local server listens on localhost by default. The hosted version runs the same chat interface through a server API. GitHub Pages alone cannot run the AI endpoint.
 
 Run `npm test` for the client-flow and server tests.
 
@@ -52,9 +58,9 @@ The chat is not monitored by a person. The **Get human support** button is avail
 
 ## Still planned
 
-- Connect the production API key and hosting, then test live conversations.
+- Connect the production API key, then test live AI conversations.
 - Check response quality across real mental health support scenarios with qualified reviewers.
-- Add account protection and shared rate limits before opening a public service.
+- Review access and add shared rate limits before opening a public service.
 
 The current server has request limits, a process-local rate limit and protected server-side credentials. It is a private prototype, not a production therapy service.
 
@@ -63,5 +69,3 @@ The current server has request limits, a process-local rate limit and protected 
 This repository began as County Issue Reporter. The August 18, 2026 commits added guided reporting, a map and saved attachments. The app's purpose has since changed to supportive AI conversations. The old road-report storage is left untouched.
 
 API implementation follows the [official OpenAI documentation](https://developers.openai.com/api/docs/guides/text) and [Responses API storage guidance](https://developers.openai.com/api/docs/guides/migrate-to-responses).
- 
-
