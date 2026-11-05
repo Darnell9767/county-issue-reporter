@@ -1,719 +1,88 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>Darnell's App</title>
-
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  >
-
-  <link
-    rel="stylesheet"
-    href="styles.css"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Supportive AI conversations to talk things through, find encouragement and take one small step at a time.">
+  <meta name="theme-color" content="#5d4ab5">
+  <title>Darnell's App — A place to talk</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
-
 <body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">💬</span>
+        <div><h1>Darnell's App</h1><p>A place to talk things through.</p></div>
+      </div>
+      <button id="newChatButton" class="quiet-button" type="button">New chat</button>
+    </header>
 
-<header class="topbar">
-  <div>
-    <h1>Darnell's App</h1>
-    <p>See it. Report it. Help fix it.</p>
+    <main id="mainContent">
+      <section class="welcome" aria-labelledby="welcomeHeading">
+        <span class="eyebrow">Your AI support companion</span>
+        <h2 id="welcomeHeading">You can start wherever you are.</h2>
+        <p>Let it out. Talk about your day. Share a small win. Get a little encouragement along the way.</p>
+        <div id="starters" class="starters" aria-label="Ways to start">
+          <button type="button" data-starter="I need to get something off my chest. Please just listen.">I need to vent</button>
+          <button type="button" data-starter="I'm feeling overwhelmed and could use some encouragement.">I'm overwhelmed</button>
+          <button type="button" data-starter="I want to share a small win from my day.">I had a small win</button>
+        </div>
+      </section>
+
+      <div id="connectionStatus" class="connection-status" role="status">Checking the chat connection…</div>
+      <section id="messages" class="messages" aria-label="Your conversation" aria-live="polite" aria-relevant="additions" aria-busy="false"></section>
+
+      <div class="composer-card">
+        <fieldset class="mode-choice">
+          <legend>What would help right now?</legend>
+          <label><input type="radio" name="supportMode" value="listen" checked><span>Just listen</span></label>
+          <label><input type="radio" name="supportMode" value="next_step"><span>Gentle ideas</span></label>
+        </fieldset>
+        <form id="chatForm">
+          <label for="messageInput" class="composer-label">What's on your mind?</label>
+          <textarea id="messageInput" rows="3" maxlength="4000" placeholder="Your own words are enough…" aria-describedby="voiceStatus" required></textarea>
+          <div class="composer-actions">
+            <button id="speakButton" class="voice-button" type="button">🎙 Speak</button>
+            <button id="sendButton" class="send-button" type="submit">Send message <span aria-hidden="true">↗</span></button>
+          </div>
+        </form>
+        <p id="voiceStatus" class="small-note" role="status">Type a message, or use speech-to-text if your browser supports it.</p>
+        <p id="chatError" class="error-message" role="alert" hidden></p>
+      </div>
+
+      <div class="below-chat">
+        <label class="remember-choice"><input id="rememberChat" type="checkbox"><span>Keep this chat on this device</span></label>
+        <p id="storageStatus" class="small-note" role="status">Off by default. Refreshing or leaving clears an unsaved chat.</p>
+        <p class="support-line">Want to talk with a person? <button id="supportButton" class="text-button" type="button">Get human support</button></p>
+      </div>
+    </main>
+
+    <footer>
+      <p>Supportive AI conversations. Professional mental health care is available from a qualified clinician.</p>
+      <details>
+        <summary>About this chat &amp; your privacy</summary>
+        <p>This is an AI companion. It can make mistakes and does not provide therapy, diagnoses or medication advice. The chat is not monitored by a person.</p>
+        <p>Your message and recent conversation are sent to OpenAI to generate a reply. The app server does not keep conversation records. The AI service's own data policies still apply.</p>
+        <p>Saving in this browser is optional. Turn it off to remove the app's saved copy, or use New chat to clear the current conversation. Other people using this browser may be able to read a saved chat.</p>
+      </details>
+    </footer>
   </div>
-</header>
 
-<main>
-
-  <!-- HOME -->
-
-  <section id="homeScreen" class="screen active">
-
-    <div class="hero-card">
-
-      <div class="hero-icon">
-        🛣️
+  <dialog id="supportDialog" aria-labelledby="supportHeading">
+    <div class="dialog-header"><h2 id="supportHeading">A person can help, too.</h2><button id="closeSupportButton" class="quiet-button" type="button">Close</button></div>
+    <p>A therapist, counsellor or healthcare provider can help you get ongoing support that fits your needs.</p>
+    <div class="support-card">
+      <h3>Suicide crisis support in Canada</h3>
+      <p>If you're thinking about suicide or worried about someone, 9-8-8 offers phone and text support, 24 hours a day.</p>
+      <div class="support-actions">
+        <a href="tel:988?oai_link_source=model_response_hotline">Call 988</a>
+        <a href="sms:988?oai_link_source=model_response_hotline">Text 988</a>
       </div>
-
-      <h2>
-        Help improve the roads we all pay for.
-      </h2>
-
-      <p>
-        Darnell's App helps residents clearly document road and
-        infrastructure problems so decision-makers can see where
-        problems are actually happening.
-      </p>
-
-      <div class="info-box">
-        <strong>⏱ Takes about 2 minutes</strong>
-
-        <p>
-          We will guide you through every step.
-          You do not need to know road terminology.
-        </p>
-      </div>
-
-      <button class="big-button primary" onclick="startReport()">
-        📍 Start a New Report
-      </button>
-
-      <button class="big-button secondary" onclick="showSavedReports()">
-        📂 View Saved Reports
-      </button>
-
+      <a class="resource-link" href="https://988.ca/?oai_link_source=model_response_hotline" target="_blank" rel="noopener noreferrer">Visit 988.ca</a>
     </div>
-
-
-    <div class="education-card">
-
-      <h3>
-        Why report road problems?
-      </h3>
-
-      <p>
-        Good information helps crews and administrators understand
-        where maintenance is actually needed.
-      </p>
-
-      <p>
-        Repeated reports from the same area can help identify
-        recurring problems instead of treating every report
-        as an isolated event.
-      </p>
-
-    </div>
-
-  </section>
-
-
-  <!-- STEP 1 -->
-
-  <section id="step1" class="screen">
-
-    <div class="step-header">
-
-      <span class="step-number">
-        Step 1 of 6
-      </span>
-
-      <h2>
-        📍 Where is the problem?
-      </h2>
-
-      <p>
-        Your location is one of the most important parts of the report.
-      </p>
-
-    </div>
-
-
-    <div class="why-box">
-
-      <strong>
-        Why are we asking?
-      </strong>
-
-      <p>
-        A clear location lets crews find the exact problem instead
-        of searching kilometres of road.
-      </p>
-
-    </div>
-
-
-    <div id="map"></div>
-
-
-    <button class="big-button gps" onclick="findMyLocation()">
-      📍 Use My Current Location
-    </button>
-
-
-    <div id="locationMessage" class="status-box">
-      Location has not been recorded yet.
-    </div>
-
-
-    <div class="tip-box">
-
-      <strong>
-        💡 You can also tap the map.
-      </strong>
-
-      <p>
-        If the problem is somewhere different from where you are standing,
-        tap that location directly.
-      </p>
-
-    </div>
-
-
-    <div class="navigation-row">
-
-      <button class="back-button" onclick="showScreen('homeScreen')">
-        ← Back
-      </button>
-
-      <button class="next-button" onclick="goToStep2()">
-        Next →
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- STEP 2 -->
-
-  <section id="step2" class="screen">
-
-    <div class="step-header">
-
-      <span class="step-number">
-        Step 2 of 6
-      </span>
-
-      <h2>
-        🚧 What is wrong?
-      </h2>
-
-      <p>
-        Pick the option that best describes what you see.
-      </p>
-
-    </div>
-
-
-    <div class="why-box">
-
-      <strong>
-        Why does this matter?
-      </strong>
-
-      <p>
-        Different problems require different equipment,
-        materials and crews.
-      </p>
-
-    </div>
-
-
-    <div id="issueGrid" class="issue-grid">
-
-      <button class="issue-card" data-issue="Washboard">
-        <span>〰️</span>
-        <strong>Washboard</strong>
-        <small>Repeated ridges or ripples in the road.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Pothole">
-        <span>🕳️</span>
-        <strong>Pothole</strong>
-        <small>Hole or depression in the driving surface.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Loose Gravel">
-        <span>🪨</span>
-        <strong>Loose Gravel</strong>
-        <small>Excess loose material on the road.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Gravel in Ditch">
-        <span>⛰️</span>
-        <strong>Gravel in Ditch</strong>
-        <small>Road material pushed off the driving surface.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Drainage">
-        <span>💧</span>
-        <strong>Drainage</strong>
-        <small>Water is not leaving the roadway properly.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Culvert">
-        <span>⭕</span>
-        <strong>Culvert</strong>
-        <small>Blocked, damaged or failing culvert.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Flooding">
-        <span>🌊</span>
-        <strong>Flooding</strong>
-        <small>Water covering or threatening the road.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Snow / Ice">
-        <span>❄️</span>
-        <strong>Snow / Ice</strong>
-        <small>Snow buildup or dangerous icy conditions.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Road Damage">
-        <span>⚠️</span>
-        <strong>Road Damage</strong>
-        <small>Rutting, erosion, soft spots or structural damage.</small>
-      </button>
-
-
-      <button class="issue-card" data-issue="Other">
-        <span>📝</span>
-        <strong>Other</strong>
-        <small>Something not listed here.</small>
-      </button>
-
-    </div>
-
-
-    <div class="navigation-row">
-
-      <button class="back-button" onclick="showScreen('step1')">
-        ← Back
-      </button>
-
-      <button class="next-button" onclick="goToStep3()">
-        Next →
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- STEP 3 -->
-
-  <section id="step3" class="screen">
-
-    <div class="step-header">
-
-      <span class="step-number">
-        Step 3 of 6
-      </span>
-
-      <h2>
-        📸 Show us the problem.
-      </h2>
-
-      <p>
-        Good photos can explain a road problem better
-        than a paragraph of text.
-      </p>
-
-    </div>
-
-
-    <div class="why-box">
-
-      <strong>
-        Why take pictures?
-      </strong>
-
-      <p>
-        Photos help show the size, severity and surrounding conditions
-        before someone is sent to inspect the area.
-      </p>
-
-    </div>
-
-
-    <div class="photo-guide">
-
-      <h3>
-        Take useful photos
-      </h3>
-
-
-      <div class="photo-tip">
-
-        <span>1️⃣</span>
-
-        <div>
-          <strong>Take one wide photo.</strong>
-
-          <p>
-            Show the whole road and surrounding area so people understand
-            where the problem is.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="photo-tip">
-
-        <span>2️⃣</span>
-
-        <div>
-          <strong>Take one close photo.</strong>
-
-          <p>
-            Show the actual washboard, pothole, gravel buildup or damage.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="photo-tip">
-
-        <span>☀️</span>
-
-        <div>
-          <strong>Keep the sun behind you when possible.</strong>
-
-          <p>
-            Shooting directly into bright sunlight can hide the problem
-            and make the photo nearly useless.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="photo-tip">
-
-        <span>📏</span>
-
-        <div>
-          <strong>Give the photo some scale.</strong>
-
-          <p>
-            Include part of the road, ditch, vehicle tire, sign or another
-            safe reference when useful.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="photo-tip warning">
-
-        <span>🦺</span>
-
-        <div>
-          <strong>Safety first.</strong>
-
-          <p>
-            Do not stand in traffic or put yourself in danger
-            just to get a photograph.
-          </p>
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <label class="upload-title">
-      Take a new photo or video
-    </label>
-
-    <input
-      type="file"
-      id="cameraMedia"
-      accept="image/*,video/*"
-      capture="environment"
-    >
-
-
-    <label class="upload-title">
-      Choose existing photos or videos
-    </label>
-
-    <input
-      type="file"
-      id="existingMedia"
-      accept="image/*,video/*"
-      multiple
-    >
-
-
-    <div id="mediaStatus" class="status-box">
-      No photos or videos selected yet.
-    </div>
-
-
-    <div class="navigation-row">
-
-      <button class="back-button" onclick="showScreen('step2')">
-        ← Back
-      </button>
-
-      <button class="next-button" onclick="showScreen('step4')">
-        Next →
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- STEP 4 -->
-
-  <section id="step4" class="screen">
-
-    <div class="step-header">
-
-      <span class="step-number">
-        Step 4 of 6
-      </span>
-
-      <h2>
-        🎙️ Tell us what you noticed.
-      </h2>
-
-      <p>
-        Talk naturally. You do not need to write a formal report.
-      </p>
-
-    </div>
-
-
-    <div class="why-box">
-
-      <strong>
-        What should you mention?
-      </strong>
-
-      <p>
-        Describe what you saw, how long the affected area is,
-        whether it is getting worse, and anything that could affect
-        safety or maintenance.
-      </p>
-
-    </div>
-
-
-    <div class="example-box">
-
-      <strong>
-        Example:
-      </strong>
-
-      <p>
-        “The washboard starts about 200 metres west of the intersection
-        and continues for roughly half a kilometre. The worst section is
-        on the south side of the road.”
-      </p>
-
-    </div>
-
-
-    <textarea
-      id="description"
-      placeholder="Type your description here or use the voice button below."
-    ></textarea>
-
-
-    <button id="dictateButton" class="big-button voice-text">
-      🎙️ Speak My Description
-    </button>
-
-
-    <div id="dictationStatus" class="status-box">
-      Voice-to-text ready.
-    </div>
-
-
-    <button id="audioButton" class="big-button audio">
-      🎤 Record Voice Note
-    </button>
-
-
-    <div id="audioStatus" class="status-box">
-      No voice note recorded.
-    </div>
-
-
-    <div class="navigation-row">
-
-      <button class="back-button" onclick="showScreen('step3')">
-        ← Back
-      </button>
-
-      <button class="next-button" onclick="showScreen('step5')">
-        Next →
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- STEP 5 -->
-
-  <section id="step5" class="screen">
-
-    <div class="step-header">
-
-      <span class="step-number">
-        Step 5 of 6
-      </span>
-
-      <h2>
-        ⚠️ How serious is it?
-      </h2>
-
-      <p>
-        Choose the level that best matches what you see.
-      </p>
-
-    </div>
-
-
-    <div class="severity-grid">
-
-      <button class="severity-card low" data-severity="Low">
-        <strong>🟢 Low</strong>
-        <span>Noticeable problem but traffic can travel normally.</span>
-      </button>
-
-
-      <button class="severity-card medium" data-severity="Medium">
-        <strong>🟡 Medium</strong>
-        <span>Needs attention and is affecting road quality.</span>
-      </button>
-
-
-      <button class="severity-card high" data-severity="High">
-        <strong>🟠 High</strong>
-        <span>Significant problem affecting safe or normal travel.</span>
-      </button>
-
-
-      <button class="severity-card urgent" data-severity="Urgent">
-        <strong>🔴 Urgent</strong>
-        <span>
-          Immediate hazard, major flooding, severe obstruction
-          or serious safety concern.
-        </span>
-      </button>
-
-    </div>
-
-
-    <div class="warning-box">
-
-      <strong>
-        🚨 Emergency?
-      </strong>
-
-      <p>
-        This reporting tool is not a replacement for emergency services.
-        If there is immediate danger to life, contact emergency services.
-      </p>
-
-    </div>
-
-
-    <div class="navigation-row">
-
-      <button class="back-button" onclick="showScreen('step4')">
-        ← Back
-      </button>
-
-      <button class="next-button" onclick="buildReview()">
-        Review Report →
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- STEP 6 -->
-
-  <section id="step6" class="screen">
-
-    <div class="step-header">
-
-      <span class="step-number">
-        Step 6 of 6
-      </span>
-
-      <h2>
-        ✅ Review your report.
-      </h2>
-
-      <p>
-        Make sure the information clearly shows what is happening.
-      </p>
-
-    </div>
-
-
-    <div id="reviewCard" class="review-card"></div>
-
-
-    <button class="big-button primary" onclick="saveReport()">
-      ✅ Save Report
-    </button>
-
-
-    <div class="navigation-row">
-
-      <button class="back-button" onclick="showScreen('step5')">
-        ← Back
-      </button>
-
-      <button class="secondary-button" onclick="showScreen('homeScreen')">
-        Home
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- SAVED REPORTS -->
-
-  <section id="savedScreen" class="screen">
-
-    <div class="step-header">
-
-      <h2>
-        📂 Saved Reports
-      </h2>
-
-      <p>
-        Review reports you have documented on this device.
-      </p>
-
-    </div>
-
-
-    <div id="savedReports"></div>
-
-
-    <button class="big-button secondary" onclick="showScreen('homeScreen')">
-      ← Back Home
-    </button>
-
-  </section>
-
-</main>
-
-
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
-
-<script src="app.js"></script>
-
+    <p class="small-note">For immediate danger, contact local emergency services. Outside Canada, use the services for your country.</p>
+  </dialog>
 </body>
 </html>
